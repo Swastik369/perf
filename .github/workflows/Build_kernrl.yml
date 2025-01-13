@@ -35,7 +35,7 @@ jobs:
 
     - name: Build Kernel
       run: |
-        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- || tail -n 1000 out/build.log
 
     - name: Package Kernel
       run: |
