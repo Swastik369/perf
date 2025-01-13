@@ -1,39 +1,59 @@
-name: Build Kernel
+name: Build Perf+ Kernel for Moto G31
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y build-essential clang make gcc git liblzma-dev bc
-
-    - name: Clone the kernel repository
-      run: |
-        git clone https://github.com/Swastik369/perf.git
-        cd perf
-
-    - name: Configure the Kernel
-      run: |
-        cp /path/to/your/defconfig arch/arm64/configs/
-        make ARCH=arm64 <your_defconfig>
-
-    - name: Build the Kernel
-      run: |
-        make ARCH=arm64 -j$(nproc)
-
-    - name: Upload the Kernel Image as artifact
-      uses: actions/upload-artifact@v2
+    # Step 1: Checkout Kernel Source
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v3
       with:
-        name: boot-image
-        path: arch/arm64/boot/Image  # or path to boot.img
+        fetch-depth: 1
+
+    # Step 2: Setup Environment
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison flex libssl-dev build-essential \
+        gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi make cpio
+
+    # Step 3: Setup Compiler
+    - name: Setup Compiler
+      run: |
+        git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
+        git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
+        export PATH=$PWD/gcc64/bin:$PWD/gcc32/bin:$PATH
+
+    # Step 4: Configure Kernel with Device Defconfig
+    - name: Configure Kernel (Perf+)
+      run: |
+        make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- arch/arm64/configs/moto-mt6768_coful_defconfig
+        echo "CONFIG_PERF_EVENTS=y" >> out/.config
+        echo "CONFIG_SCHED_HRTICK=y" >> out/.config
+        echo "CONFIG_KALLSYMS=y" >> out/.config
+
+    # Step 5: Build Kernel
+    - name: Build Kernel
+      run: |
+        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+
+    # Step 6: Package Kernel
+    - name: Package Kernel
+      run: |
+        mkdir -p release
+        cp out/arch/arm64/boot/Image.gz-dtb release/
+        echo "Kernel build complete! Find the output in the release folder."
+
+    # Step 7: Upload Artifacts
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Perf+Kernel
+        path: release/
