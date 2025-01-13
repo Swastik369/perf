@@ -1,0 +1,39 @@
+name: Build Kernel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential clang make gcc git liblzma-dev bc
+
+    - name: Clone the kernel repository
+      run: |
+        git clone https://github.com/Swastik369/perf.git
+        cd perf
+
+    - name: Configure the Kernel
+      run: |
+        cp /path/to/your/defconfig arch/arm64/configs/
+        make ARCH=arm64 <your_defconfig>
+
+    - name: Build the Kernel
+      run: |
+        make ARCH=arm64 -j$(nproc)
+
+    - name: Upload the Kernel Image as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: boot-image
+        path: arch/arm64/boot/Image  # or path to boot.img
