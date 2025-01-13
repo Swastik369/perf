@@ -26,12 +26,9 @@ jobs:
         git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
         export PATH=$PWD/gcc64/bin:$PWD/gcc32/bin:$PATH
 
-    - name: Configure Kernel (Perf+)
+    - name: Configure Kernel
       run: |
         make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- configs/coful_defconfig
-        echo "CONFIG_PERF_EVENTS=y" >> out/.config
-        echo "CONFIG_SCHED_HRTICK=y" >> out/.config
-        echo "CONFIG_KALLSYMS=y" >> out/.config
 
     - name: Build Kernel
       run: |
@@ -44,7 +41,3 @@ jobs:
         echo "Kernel build complete! Find the output in the release folder."
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: Perf+Kernel
-        path: release/
