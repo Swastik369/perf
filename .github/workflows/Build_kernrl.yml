@@ -41,7 +41,7 @@ jobs:
         echo "Kernel build complete! Find the output in the release folder."
 
     - name: Upload Artifacts
-    uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
-        name: Kernel
+        name: Perf+Kernel
         path: release/
