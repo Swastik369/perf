@@ -1,0 +1,49 @@
+name: Build Kernel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc bison flex libssl-dev build-essential \
+        gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi make cpio
+
+    - name: Setup Compiler
+      run: |
+        git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
+        git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
+        export PATH=$PWD/gcc64/bin:$PWD/gcc32/bin:$PATH
+
+    - name: Configure Kernel
+      run: |
+        make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- coful_defconfig
+
+    - name: Build Kernel
+      run: |
+        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+
+    - name: Package Kernel
+      run: |
+        mkdir -p release
+        cp out/arch/arm64/boot/Image.gz-dtb release/
+        echo "Kernel build complete! Find the output in the release folder."
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Kernel
+        path: release/
