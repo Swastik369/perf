@@ -1,7 +1,7 @@
-name: Kernel Build
+name: Try
 
 on:
-  workflow_dispatch: # Allows manual trigger from the GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,25 +12,25 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v3
 
-      # Step 2: Set Up Dependencies
+      # Step 2: Install Dependencies
       - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y build-essential libncurses-dev bison flex libssl-dev bc git
 
-      # Step 3: Download Toolchain
-      - name: Download Toolchain
+      # Step 3: Download and Set Up the Toolchain
+      - name: Set Up Toolchain
         run: |
-           git clone https://github.com/kdrag0n/aarch64-linux-android-4.9 toolchain
-           echo "::add-path::$(pwd)/toolchain/bin"
+          git clone https://github.com/rajatgupta1998/platform_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 toolchain
+          echo "::add-path::$(pwd)/toolchain/bin"
 
-      # Step 4: Build Kernel
+      # Step 4: Build the Kernel
       - name: Compile Kernel
         run: |
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- coful_defconfig
           make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
 
-      # Step 5: Upload Kernel Artifacts
+      # Step 5: Upload Compiled Kernel
       - name: Upload Compiled Kernel
         uses: actions/upload-artifact@v3
         with:
