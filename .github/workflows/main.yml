@@ -18,17 +18,19 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential libncurses-dev bison flex libssl-dev bc git
 
-      # Step 3: Download and Set Up the Toolchain
-      - name: Set Up Toolchain
+      # Step 3: Download and Set Up GCC Toolchain
+      - name: Download and Set Up New GCC Toolchain
         run: |
-          git clone https://github.com/rajatgupta1998/platform_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 toolchain
-          echo "$(pwd)/toolchain/bin" >> $GITHUB_PATH
+          wget https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          mkdir -p toolchain
+          tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz -C toolchain
+          echo "$(pwd)/toolchain/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
       # Step 4: Build the Kernel
       - name: Compile Kernel
         run: |
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- coful_defconfig
-          make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- coful_defconfig
+          make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
 
       # Step 5: Upload Compiled Kernel
       - name: Upload Compiled Kernel
