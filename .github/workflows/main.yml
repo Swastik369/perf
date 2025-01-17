@@ -1,4 +1,4 @@
-name: Try
+name: TrAi
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       - name: Set Up Toolchain
         run: |
           git clone https://github.com/rajatgupta1998/platform_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 toolchain
-          echo "::add-path::$(pwd)/toolchain/bin"
+          echo "$(pwd)/toolchain/bin" >> $GITHUB_PATH
 
       # Step 4: Build the Kernel
       - name: Compile Kernel
