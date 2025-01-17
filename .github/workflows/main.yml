@@ -1,38 +1,55 @@
-name: TrAi
+name: Kernel Upstream & Build
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  upstream-and-build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the Kernel Source
-      - name: Checkout Source
+      # Step 1: Checkout Your Kernel Source
+      - name: Checkout Kernel Source
         uses: actions/checkout@v3
 
-      # Step 2: Install Dependencies
+      # Step 2: Set Up Git Config
+      - name: Configure Git
+        run: |
+          git config --global user.name Swastik369
+          git config --global user.email swastikpari123@gmail.com
+
+      # Step 3: Add Upstream Kernel Repository
+      - name: Add Upstream Repo
+        run: |
+          git remote add linux-stable https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+          git fetch linux-stable
+
+      # Step 4: Merge Upstream Changes
+      - name: Merge Upstream Changes
+        run: |
+          git merge linux-stable/v5.10 -m "Upstream to v5.10"
+
+      # Step 5: Install Build Dependencies
       - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y build-essential libncurses-dev bison flex libssl-dev bc git
 
-      # Step 3: Download and Set Up GCC Toolchain
-      - name: Download and Set Up New GCC Toolchain
+      # Step 6: Download GCC Toolchain
+      - name: Set Up GCC Toolchain
         run: |
-          wget https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+          wget https://releases.linaro.org/components/toolchain/binaries/latest-10/aarch64-linux-gnu/gcc-linaro-10.3.1-2021.07-x86_64_aarch64-linux-gnu.tar.xz
           mkdir -p toolchain
-          tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz -C toolchain
-          echo "$(pwd)/toolchain/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
+          tar -xf gcc-linaro-10.3.1-2021.07-x86_64_aarch64-linux-gnu.tar.xz -C toolchain
+          echo "$(pwd)/toolchain/gcc-linaro-10.3.1-2021.07-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
-      # Step 4: Build the Kernel
+      # Step 7: Build the Kernel
       - name: Compile Kernel
         run: |
           make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- coful_defconfig
           make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
 
-      # Step 5: Upload Compiled Kernel
+      # Step 8: Upload Compiled Kernel
       - name: Upload Compiled Kernel
         uses: actions/upload-artifact@v3
         with:
