@@ -1,0 +1,40 @@
+name: Dawn
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kernel Source
+        run: |
+          git clone https://github.com/MotorolaMobilityLLC/kernel-mtk.git --depth=1 -b MMI-S3RWBS32.125-29-2-4-3 kernel-src
+          cd kernel-src
+
+      - name: Set Up GCC Toolchain
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-8 g++-8
+          export PATH=$PATH:/usr/bin
+
+      - name: Clean Build Directory
+        run: |
+          cd kernel-src
+          export ARCH=arm64
+          make clean
+          make mrproper
+
+      - name: Configure Kernel
+        run: |
+          cd kernel-src
+          export ARCH=arm64
+          make ext_config/moto-k69v1_64-coful.config
+
+      - name: Build Kernel
+        run: |
+          cd kernel-src
+          export ARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          make -j$(nproc)
