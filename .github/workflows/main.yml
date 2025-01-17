@@ -1,0 +1,43 @@
+name: Kernel Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the Kernel Source
+    - name: Checkout Source
+      uses: actions/checkout@v3
+
+    # Step 2: Set Up Dependencies
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libncurses-dev bison flex libssl-dev bc git
+
+    # Step 3: Set Up Toolchain
+    - name: Download Toolchain
+      run: |
+        git clone https://github.com/aarch64-linux-android-toolchain/aarch64-linux-android-4.9 toolchain
+        echo "::add-path::$(pwd)/toolchain/bin"
+
+    # Step 4: Build the Kernel
+    - name: Compile Kernel
+      run: |
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-android- coful_defconfig
+        make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
+
+    # Step 5: Upload Compiled Files
+    - name: Upload Kernel
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-kernel
+        path: arch/arm64/boot/Image.gz-dtb
