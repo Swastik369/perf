@@ -1,4 +1,4 @@
-name: Build Kernel
+name: try2
 
 on:
   workflow_dispatch:
@@ -13,9 +13,14 @@ jobs:
           git clone https://github.com/MotorolaMobilityLLC/kernel-mtk.git --depth=1 -b MMI-S3RWBS32.125-29-2-4-3 kernel-src
           cd kernel-src
 
-      - name: Install GCC 7 Toolchain
+      - name: Add Repository for GCC 7
         run: |
           sudo apt update
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt update
+
+      - name: Install GCC 7 Toolchain
+        run: |
           sudo apt install -y gcc-7 g++-7
           export PATH=$PATH:/usr/bin
 
