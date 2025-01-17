@@ -1,4 +1,4 @@
-name: Dawn
+name: Build Kernel
 
 on:
   workflow_dispatch:
@@ -13,10 +13,10 @@ jobs:
           git clone https://github.com/MotorolaMobilityLLC/kernel-mtk.git --depth=1 -b MMI-S3RWBS32.125-29-2-4-3 kernel-src
           cd kernel-src
 
-      - name: Set Up GCC Toolchain
+      - name: Install GCC 7 Toolchain
         run: |
           sudo apt update
-          sudo apt install -y gcc-8 g++-8
+          sudo apt install -y gcc-7 g++-7
           export PATH=$PATH:/usr/bin
 
       - name: Clean Build Directory
@@ -37,4 +37,4 @@ jobs:
           cd kernel-src
           export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
-          make -j$(nproc)
+          make CC=gcc-7 -j$(nproc)
