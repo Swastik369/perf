@@ -1,28 +1,45 @@
 name: Build Kernel
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  build_kernel:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Kernel Source
-        run: |
-          git clone https://github.com/MotorolaMobilityLLC/kernel-mtk.git --depth=1 -b MMI-S3RWBS32.125-29-2-4-3 kernel-src
-          cd kernel-src
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Download Prebuilt GCC Toolchain
+      - name: Set up environment
         run: |
-          wget https://github.com/rajatgupta1998/platform_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9/archive/refs/heads/main.zip
-          unzip main.zip
-          mv platform_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9-main toolchain
+          # Install dependencies
+          sudo apt update
+          sudo apt install -y wget unzip build-essential
 
-      - name: Build Kernel
+      - name: Download prebuilt toolchain
         run: |
-          export PATH=$PWD/toolchain/bin:$PATH
-          export CROSS_COMPILE=aarch64-linux-android-
-          cd kernel-src
-          make ARCH=arm64 ext_config/moto-k69v1_64-coful.config
-          make -j$(nproc) ARCH=arm64
+          wget https://example.com/path/to/toolchain.tar.gz -O toolchain.tar.gz
+          tar -xvzf toolchain.tar.gz
+          export CROSS_COMPILE=$PWD/toolchain/bin/aarch64-linux-android-
+          export PATH=$PATH:$PWD/toolchain/bin
+
+      - name: Set up the kernel configuration
+        run: |
+          # Set the kernel configuration (Use your specific config file)
+          cp arch/arm64/configs/ext_config/moto-k69v1_64-coful.config .config
+
+      - name: Build the kernel
+        run: |
+          make ARCH=arm64 CROSS_COMPILE=$CROSS_COMPILE -j$(nproc)
+        
+      - name: Upload kernel image
+        uses: actions/upload-artifact@v2
+        with:
+          name: kernel-image
+          path: arch/arm64/boot/Image.gz-dtb
